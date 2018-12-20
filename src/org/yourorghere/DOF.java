@@ -162,7 +162,7 @@ public class DOF implements GLEventListener {
     private static void initPrograms() {
         //создаём программу с шейдером код которого берём из файла ...
         //программа размытия
-        blurProgram = ProgramBuilder.createProgram(gl, "low.frag");
+        blurProgram = ProgramBuilder.createProgram(gl, "blur.frag");
         //биндим эту программу
         gl.glUseProgram(blurProgram);
         //устанавливаем положение переменной текстуры (еще не размытой)
