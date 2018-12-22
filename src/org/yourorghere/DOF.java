@@ -28,7 +28,6 @@ public class DOF implements GLEventListener {
     public static void main(String[] args) {
         //создаём окно
         Frame frame = new Frame("DOF!");
-        frame.setType(Window.Type.UTILITY);
         //получаем размеры экрана
         int size = Toolkit.getDefaultToolkit().getScreenSize().height - 30;
         frame.setSize(size, size);
@@ -79,7 +78,7 @@ public class DOF implements GLEventListener {
     //0 - для отрисовки сцены
     //1-2 - для размытия
     //3 - для карты глубины
-    private static final int[] FBO = new int[4];
+    private static final int[] FBO = new int[3];
 
     //процедура инициализации текстур
     private static void initTextures() {
@@ -105,8 +104,8 @@ public class DOF implements GLEventListener {
 
     //процедура генерация буферов кадра
     private static void initFrameBuffers() {
-        //генерируем 4 буфера в массив
-        gl.glGenFramebuffersEXT(4, FBO, 0);
+        //генерируем 3 буфера в массив
+        gl.glGenFramebuffersEXT(3, FBO, 0);
         {
             //для трёх первых
             for (int i = 0; i < 3; i++) {
@@ -120,30 +119,14 @@ public class DOF implements GLEventListener {
                 gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, TEXTURES[i], 0);
             }
 
-            gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, FBO[3]);
-
-            //для теретбего - для записи глубины
+            gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, FBO[0]);
+            //для нулевого - для записи глубины
             gl.glBindTexture(GL.GL_TEXTURE_2D, TEXTURES[3]);
             //параметры записи меняются на запись глубины с теми же размерами
             gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_DEPTH_COMPONENT, VIEWPORT[2], VIEWPORT[3], 0, GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, null);
-            //фрприкрепляем к фреймбуферу текстуру
+            //прикрепляем к фреймбуферу текстуру
             gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT, GL.GL_TEXTURE_2D, TEXTURES[3], 0);
-
-            //для первого фрейм буфера также необходим рендер буфер
-            int[] RBO = new int[1];
-            //генерируем
-            gl.glGenRenderbuffersEXT(1, RBO, 0);
-            //биндим
-            gl.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, RBO[0]);
-            //рендербуфер будет принимать комнонет глубины
-            gl.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT32, VIEWPORT[2], VIEWPORT[3]);
-            //биндим дефолтный
-            gl.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, 0);
-            //биндим нулевой фреймбуфер
-            gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, FBO[0]);
-            //прикрепляем к фреймбуферу рендербуфер
-            gl.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT, GL.GL_RENDERBUFFER_EXT, RBO[0]);
-            //биндим дефолтный
+            
             gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
         }
     }
@@ -300,12 +283,6 @@ public class DOF implements GLEventListener {
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             //рисуем сцену в выбранный буферу
             drawScene();
-            //биндим 3й фреймбуфер - для карты глубины
-            gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, FBO[3]);
-            //очищаем
-            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-            //рисуем сцену
-            drawScene();
         }
         //начинаем "плоскую" отрисоку, т.к. дальше работаем только с 2D текстура
         startOrtho();
@@ -316,7 +293,7 @@ public class DOF implements GLEventListener {
                 //биндим фреймбуфер 2й (теперь отрисованной будет оппадать во вторую текстуру т.т мы ранее их связали)
                 gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, FBO[2]);
                 //оичщаем
-                gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+                gl.glClear(GL.GL_COLOR_BUFFER_BIT);
                 //активируем текстуру (нулевую)
                 gl.glActiveTexture(GL.GL_TEXTURE0);
                 //биндим нулевую текстуру (с записанной сценоЙ ранее сценой) на нулевое место
@@ -332,7 +309,7 @@ public class DOF implements GLEventListener {
                 //биндим фреймбфер
                 gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, FBO[1]);
                 //очищаем
-                gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+                gl.glClear(GL.GL_COLOR_BUFFER_BIT);
                 //активируем текстуру (нулевую)
                 gl.glActiveTexture(GL.GL_TEXTURE0);
                 //биндим 2ю текстуру на место 0 (активированное)
